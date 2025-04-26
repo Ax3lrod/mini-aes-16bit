@@ -140,5 +140,5 @@ def run_tests():
         print(f"Expected output format (hex): {ciphertext_hex}")
 
 # uncomment untuk mengetes testcases
-if __name__ == "__main__":
-    run_tests()
+# if __name__ == "__main__":
+#     run_tests()

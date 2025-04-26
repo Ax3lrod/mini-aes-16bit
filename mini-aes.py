@@ -38,3 +38,31 @@ def mix_columns(state: List[int]) -> List[int]:
 # AddRoundKey (XOR)
 def add_round_key(state: List[int], key: List[int]) -> List[int]:
     return [s ^ k for s, k in zip(state, key)]
+
+def derive_key16(passphrase: str) -> int:
+    """Hash passphrase → ambil 16-bit pertama sebagai key."""
+    h = hashlib.sha256(passphrase.encode('utf-8')).digest()
+    return int.from_bytes(h[:2], 'big')  # 0…65535
+
+# ShiftRows (swap nibble positions 1 and 3)
+def shift_rows(state: List[int]) -> List[int]:
+    return [state[0], state[3], state[2], state[1]]
+
+def inv_shift_rows(state: List[int]) -> List[int]:
+    return [state[0], state[3], state[2], state[1]]
+
+# Key expansion: 16-bit -> three 16-bit round keys
+def key_expansion(key: int) -> List[int]:
+    w = [ (key >> 8) & 0xFF, key & 0xFF ]
+    RCON = [0x80, 0x30, 0x80]   # bisa tambahkan RCON[2] jika mau, atau ulangi RCON[0]
+    for i in range(3):
+        temp = ((w[-1] << 4) & 0xFF) | (w[-1] >> 4)
+        hi, lo = (temp >> 4) & 0xF, temp & 0xF
+        sub = (SBOX[hi] << 4) | SBOX[lo]
+        w.append(w[i] ^ RCON[i % len(RCON)] ^ sub)
+        w.append(w[i+1] ^ w[-1])
+    # combine jadi 4 round-keys
+    round_keys = []
+    for i in range(0, len(w), 2):
+        round_keys.append((w[i] << 8) | w[i+1])
+    return round_keys  # sekarang len=4

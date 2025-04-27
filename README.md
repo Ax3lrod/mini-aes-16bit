@@ -7,6 +7,33 @@
 | Aryasatya Alaauddin | 5027231082 |
 | Falisha Tazkia | 5008221076 |
 
+## Spesifikasi Algoritma Mini-AES 16-bit
+
+### Overview
+
+Mini-AES 16-bit adalah varian dari algoritma AES yang disederhanakan, dengan panjang plaintext dan kunci masing-masing 16-bit. Proses enkripsi berlangsung dalam 3 round, di mana operasi tertentu hanya dilakukan pada round pertama dan kedua, sementara round ketiga hanya melibatkan beberapa operasi tertentu tanpa MixColumns.
+
+### Langkah-langkah Enkripsi
+
+1. Key Expansion:
+Proses ini menghasilkan round keys dari kunci utama yang akan digunakan dalam setiap round enkripsi.
+
+2. Round 1 dan 2:
+    - AddRoundKey: XOR antara plaintext dan round key untuk memulai enkripsi.
+    - SubNibbles: Setiap nibble (4-bit) dalam blok plaintext diganti dengan nilai yang dipetakan menggunakan S-Box 4-bit.
+    - ShiftRows: Geser baris-baris dalam blok plaintext sesuai dengan aturan tertentu. Dalam Mini-AES 16-bit, ini dapat dianggap sebagai pergeseran sederhana pada blok 16-bit.
+    - MixColumns: Operasi matriks dilakukan pada kolom-kolom data menggunakan elemen-elemen dalam ruang Galois GF(24). Proses ini mencampur nilai-nilai pada kolom data untuk meningkatkan kekuatan enkripsi.
+    - AddRoundKey: XOR lagi antara data yang sudah dimodifikasi dengan round key untuk round ini.
+
+3. Round 3:
+    - AddRoundKey: XOR plaintext dengan round key untuk ronde ketiga.
+    - SubNibbles: Gantikan setiap nibble dalam blok data dengan nilai yang sesuai dari S-Box 4-bit.
+    - ShiftRows: Geser baris-baris dalam blok sesuai dengan aturan ShiftRows, meskipun MixColumns tidak digunakan pada ronde ketiga.
+    - AddRoundKey: XOR kembali dengan round key pada ronde ketiga. Tidak ada operasi MixColumns pada ronde ini.
+
+**Output:**
+Ciphertext 16-bit yang dihasilkan dari proses enkripsi di atas.
+
 ## Flowchart
 
 ![Flowchart](https://github.com/user-attachments/assets/2ec59c4b-5a7f-4088-80d9-293b27464198)

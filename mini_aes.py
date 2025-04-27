@@ -53,11 +53,6 @@ def inv_mix_columns(state: List[int]) -> List[int]:
 def add_round_key(state: List[int], key: List[int]) -> List[int]:
     return [s ^ k for s, k in zip(state, key)]
 
-def derive_key16(passphrase: str) -> int:
-    """Hash passphrase → ambil 16-bit pertama sebagai key."""
-    h = hashlib.sha256(passphrase.encode('utf-8')).digest()
-    return int.from_bytes(h[:2], 'big')  # 0…65535
-
 # ShiftRows (swap nibble positions 1 and 3)
 def shift_rows(state: List[int]) -> List[int]:
     return [state[0], state[3], state[2], state[1]]

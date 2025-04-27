@@ -1,5 +1,6 @@
 import hashlib
 from typing import List
+import csv
 
 # S-Box and inverse S-Box (4-bit)
 SBOX = [0x9, 0x4, 0xA, 0xB, 0xD, 0x1, 0x8, 0x5,
@@ -17,9 +18,11 @@ def combine_nibbles(nibbles: List[int]) -> int:
 def sub_nibbles(state: List[int]) -> List[int]:
     return [SBOX[n] for n in state]
 
+def inv_sub_nibbles(state: List[int]) -> List[int]:
+    return [INV_SBOX[n] for n in state]
+
 # MixColumns over GF(2^4) with matrix [[1,4],[4,1]]
 def gf4_mul(a: int, b: int) -> int:
-    # Multiply in GF(2^4) with irreducible x^4 + x + 1 (0x13)
     res = 0
     for i in range(4):
         if (b >> i) & 1:
@@ -36,6 +39,14 @@ def mix_columns(state: List[int]) -> List[int]:
     c1 = gf4_mul(1, s1) ^ gf4_mul(4, s3)
     c2 = gf4_mul(4, s0) ^ gf4_mul(1, s2)
     c3 = gf4_mul(4, s1) ^ gf4_mul(1, s3)
+    return [c0, c1, c2, c3]
+
+def inv_mix_columns(state: List[int]) -> List[int]:
+    s0, s1, s2, s3 = state
+    c0 = gf4_mul(9, s0) ^ gf4_mul(2, s2)
+    c1 = gf4_mul(9, s1) ^ gf4_mul(2, s3)
+    c2 = gf4_mul(2, s0) ^ gf4_mul(9, s2)
+    c3 = gf4_mul(2, s1) ^ gf4_mul(9, s3)
     return [c0, c1, c2, c3]
 
 # AddRoundKey (XOR)
@@ -70,25 +81,27 @@ def key_expansion(key: int) -> List[int]:
         round_keys.append((w[i] << 8) | w[i+1])
     return round_keys  # sekarang len=4
 
-# ORANG TIGA
-# Mengubah plaintext (2 karakter) menjadi 16-bit block
-def text_to_block(plaintext: str) -> int:
-    assert len(plaintext) == 2, "Plaintext harus terdiri dari 2 karakter."
-    return (ord(plaintext[0]) << 8) | ord(plaintext[1])
+def text_to_blocks(s: str) -> list[int]:
+    """Encode UTF-8, pad 0x00 bila perlu, split 2 byte per blok 16-bit."""
+    b = s.encode('utf-8')
+    if len(b) % 2:
+        b += b'\x00'
+    return [int.from_bytes(b[i:i+2], 'big') 
+            for i in range(0, len(b), 2)]
 
-# Mengubah 16-bit block menjadi plaintext (2 karakter)
-def block_to_text(block: int) -> str:
-    high = (block >> 8) & 0xFF
-    low = block & 0xFF
-    return chr(high) + chr(low)
+def blocks_to_text(blocks: list[int]) -> str:
+    """Gabung blok → bytes → decode, strip padding null."""
+    b = b''.join(blk.to_bytes(2, 'big') for blk in blocks)
+    return b.rstrip(b'\x00').decode('utf-8', errors='ignore')
 
 # Encrypt satu block (16-bit) menggunakan Mini-AES
-def encrypt_block(plaintext_block: int, round_keys: List[int]) -> int:
-    state = split_nibbles(plaintext_block)
+def encrypt_block(plaintext: int, key:int) -> int:
+    state = split_nibbles(plaintext)
+    rks = key_expansion(key)
 
     print(f"Initial state: {state}")
     # Initial AddRoundKey
-    state = add_round_key(state, split_nibbles(round_keys[0]))
+    state = add_round_key(state, split_nibbles(rks[0]))
     print(f"After initial AddRoundKey: {state}")
 
     # 3 rounds
@@ -104,10 +117,79 @@ def encrypt_block(plaintext_block: int, round_keys: List[int]) -> int:
             state = mix_columns(state)
             print(f"After MixColumns: {state}")
 
-        state = add_round_key(state, split_nibbles(round_keys[i]))
+        state = add_round_key(state, split_nibbles(rks[i]))
         print(f"After AddRoundKey: {state}")
 
     return combine_nibbles(state)
+
+# Decrypt single 16-bit block
+def decrypt_block(ciphertext: int, key: int) -> int:
+    state = split_nibbles(ciphertext)
+    rks = key_expansion(key)
+    # initial AddRoundKey with last key
+    state = add_round_key(state, split_nibbles(rks[3]))
+    state = inv_shift_rows(state)
+    state = inv_sub_nibbles(state)
+    # 2 full inverse rounds
+    for rnd in reversed(range(1, 3)):
+        state = add_round_key(state, split_nibbles(rks[rnd]))
+        state = inv_mix_columns(state)
+        state = inv_shift_rows(state)
+        state = inv_sub_nibbles(state)
+    # final AddRoundKey
+    state = add_round_key(state, split_nibbles(rks[0]))
+    return combine_nibbles(state)
+
+def ecb_encrypt_blocks(blocks: List[int], key: int) -> List[int]:
+    return [encrypt_block(block, key) for block in blocks]
+
+def ecb_decrypt_blocks(blocks: List[int], key: int) -> List[int]:
+    return [decrypt_block(block, key) for block in blocks]
+
+def cbc_encrypt_blocks(blocks: List[int], key: int, iv: int) -> List[int]:
+    ciphertext = []
+    prev_block = iv
+    for block in blocks:
+        block_to_encrypt = block ^ prev_block
+        encrypted_block = encrypt_block(block_to_encrypt, key)
+        ciphertext.append(encrypted_block)
+        prev_block = encrypted_block  # Update prev_block for next round
+    return ciphertext
+
+def cbc_decrypt_blocks(blocks: List[int], key: int, iv: int) -> List[int]:
+    plaintext = []
+    prev_block = iv
+    for block in blocks:
+        decrypted_block = decrypt_block(block, key)
+        block_to_xor = decrypted_block ^ prev_block
+        plaintext.append(block_to_xor)
+        prev_block = block  # Update prev_block for next round
+    return plaintext                
+
+def save_log_txt(file_name, *args):
+    with open(file_name, "a") as f:
+        # Concatenate all arguments as a single string
+        log_entry = " ".join(str(arg) for arg in args) + "\n"
+        f.write(log_entry)
+
+def save_blocks_csv(path: str, blocks: list[int], header: list[str]=None):
+    with open(path, 'w', newline='') as f:
+        w = csv.writer(f)
+        if header: w.writerow(header)
+        for b in blocks:
+            w.writerow([f"{b:04X}"])
+
+def load_txt(path: str) -> str:
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+def load_blocks_csv(path: str) -> list[int]:
+    out = []
+    with open(path, newline='') as f:
+        r = csv.reader(f)
+        for row in r:
+            out.append(int(row[0], 16))
+    return out
 
 # TESTCASES
 def run_tests():
@@ -122,8 +204,8 @@ def run_tests():
         plaintext = test["plaintext"]
         key = test["key"]
 
-        plaintext_block = text_to_block(plaintext)
-        key_block = text_to_block(key)
+        plaintext_block = text_to_blocks(plaintext)
+        key_block = text_to_blocks(key)
 
         print(f"Plaintext '{plaintext}' -> Block: {hex(plaintext_block)}")
         print(f"Key '{key}' -> Block: {hex(key_block)}")
@@ -135,10 +217,10 @@ def run_tests():
         ciphertext_hex = hex(ciphertext_block)
 
         print(f"Ciphertext block: {ciphertext_hex}")
-        ciphertext_text = block_to_text(ciphertext_block)
+        ciphertext_text = blocks_to_text(ciphertext_block)
         print(f"Ciphertext as text: {ciphertext_text.encode('utf-8')}")
         print(f"Expected output format (hex): {ciphertext_hex}")
 
 # uncomment untuk mengetes testcases
-# if __name__ == "__main__":
-#     run_tests()
+if __name__ == "__main__":
+    run_tests()

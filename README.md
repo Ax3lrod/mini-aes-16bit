@@ -162,11 +162,11 @@ Uji sensitivitas terhadap perubahan 1-bit di plaintext dan key:
 - Plaintext: "HI", Key: "XB" → Ciphertext: C3D9
 - Plaintext: "Hx", Key: "AB" → Ciphertext: 2F3C
 
-Perubahan hanya satu bit pada plaintext atau key menghasilkan perubahan yang signifikan pada ciphertext:
+Hasil analisis uji sensitivitas tersebut:
 - Perubahan pada Key (Key "AB" menjadi "XB"): Ciphertext berubah dari C855 menjadi C3D9. Meskipun perubahan pada key hanya satu bit, perubahan pada ciphertext sangat besar. Hal ini menunjukkan bahwa AES (dan varian seperti Mini-AES) memiliki efek avalanche yang sangat kuat.
 - Perubahan pada Plaintext (Plaintext "HI" menjadi "Hx"): Ciphertext berubah dari C855 menjadi 2F3C. Meskipun hanya ada satu karakter yang berubah dalam plaintext (yaitu, huruf "I" menjadi "x"), perubahan ini menyebabkan perubahan besar pada ciphertext.
 
-Dalam kedua kasus ini (perubahan pada key atau plaintext), perubahan kecil di input (baik pada plaintext atau key) menyebabkan perubahan yang signifikan pada ciphertext. Ini adalah ciri khas dari efek avalanche, yang memastikan bahwa setiap bit dari ciphertext bergantung pada hampir semua bit dari plaintext dan kunci.
+Dalam kedua kasus ini, perubahan kecil di input (baik pada plaintext atau key) menyebabkan perubahan yang signifikan pada ciphertext. Ini adalah ciri khas dari efek avalanche, yang memastikan bahwa setiap bit dari ciphertext bergantung pada hampir semua bit dari plaintext dan kunci.
 
 Secara umum, dalam kriptografi yang baik, kita menginginkan agar satu bit perubahan pada input (baik plaintext maupun key) menghasilkan perubahan besar dan tidak terduga dalam ciphertext. Hal ini menambah kerumitan dalam menganalisis hubungan antara ciphertext dan plaintext, yang merupakan salah satu aspek penting dalam meningkatkan keamanan algoritma.
 

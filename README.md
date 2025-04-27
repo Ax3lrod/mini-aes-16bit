@@ -141,3 +141,35 @@ Dalam pengujian mini-AES, dibuat 3 testcases dengan input berupa plaintext dan k
 6. Ciphertext block: 0x8dff (sama dengan expected output)
 
 Semua testcase menghasilkan ciphertext yang sesuai dengan langkah enkripsi mini-AES, dan semua proses (SubNibbles, ShiftRows, MixColumns, dan AddRoundKey) juga berjalan sesuai spesifikasi, tanpa kesalahan dalam key expansion pada tiap round.
+
+## Analisis Kelebihan dan Keterbatasan Mini-AES
+
+### Kelebihan
+- Sederhana dan Mudah Diimplementasikan. Mini-AES dirancang dengan struktur yang sangat sederhana dibandingkan AES standar, dengan blok data dan kunci hanya sepanjang 16-bit. Hal ini membuat algoritma ini sangat mudah untuk dipelajari dan diimplementasikan.
+- Ringan dan Efisien: Dengan ukuran blok yang lebih kecil, yaitu 16-bit, Mini-AES jauh lebih ringan dalam hal penggunaan sumber daya dibandingkan dengan AES standar yang menggunakan blok 128-bit. Ini menjadikannya pilihan yang sangat baik untuk perangkat dengan sumber daya terbatas seperti perangkat IoT, sensor, atau sistem tertanam (embedded systems). 
+- Cepat: Proses enkripsi dan dekripsi Mini-AES lebih cepat dan memerlukan lebih sedikit sumber daya dibandingkan dengan AES standar (128-bit, 192-bit, atau 256-bit). 
+- Mengajarkan Konsep Dasar AES: Struktur Mini-AES yang mempertahankan komponen-komponen utama dari AES (seperti SubNibbles, ShiftRows, MixColumns, dan AddRoundKey) membuatnya sangat bermanfaat sebagai alat bantu pendidikan.
+
+### Keterbatasan
+- Keamanan Rendah: Mini-AES menggunakan blok data yang sangat kecil (16-bit), yang membuatnya rentan terhadap serangan brute force. Dengan hanya 65536 kemungkinan kunci (2^16), serangan terhadap kunci dengan metode brute force menjadi lebih mudah dilakukan dibandingkan dengan AES standar.
+- Tidak Cocok untuk Aplikasi dengan Keamanan Tinggi: Karena ukuran kunci dan blok yang kecil, Mini-AES tidak cocok digunakan dalam aplikasi yang membutuhkan tingkat keamanan tinggi. AES standar yang menggunakan blok 128-bit dan kunci lebih panjang lebih tahan terhadap serangan.
+- Keterbatasan pada Skala Besar: Meskipun Mini-AES sangat efisien untuk blok data kecil, keterbatasan ukuran blok dan kunci menjadikannya tidak ideal untuk penggunaan pada skala besar, terutama ketika data yang lebih besar perlu dienkripsi secara simultan. AES standar dengan ukuran blok 128-bit dapat menangani data yang lebih besar dengan lebih baik.
+
+## Analisis Keamanan dan Avalanche Effect
+Efek Avalanche mengacu pada fenomena di mana perubahan kecil (biasanya 1 bit) pada plaintext atau kunci menyebabkan perubahan yang signifikan (hampir setengah) dalam ciphertext. Dalam kriptografi yang baik, efek avalanche ini sangat penting untuk memastikan bahwa ciphertext tidak mengungkapkan pola atau hubungan langsung dengan plaintext. Efek ini meningkatkan keamanan algoritma kriptografi dengan mengurangi kemungkinan untuk menghubungkan ciphertext kembali ke plaintext atau kunci yang digunakan.
+Contohnya:
+- Plaintext: "HI", Key: "AB" → Ciphertext: C855
+- Plaintext: "HI", Key: "XB" → Ciphertext: C3D9
+- Plaintext: "Hx", Key: "AB" → Ciphertext: 2F3C
+
+Dalam kasus ini, perubahan hanya satu bit pada plaintext atau key menghasilkan perubahan yang signifikan pada ciphertext:
+- Perubahan pada Key (Key "AB" menjadi "XB"): Ciphertext berubah dari C855 menjadi C3D9. Meskipun perubahan pada key hanya satu bit, perubahan pada ciphertext sangat besar. Hal ini menunjukkan bahwa AES (dan varian seperti Mini-AES) memiliki efek avalanche yang sangat kuat.
+- Perubahan pada Plaintext (Plaintext "HI" menjadi "Hx"): Ciphertext berubah dari C855 menjadi 2F3C. Meskipun hanya ada satu karakter yang berubah dalam plaintext (yaitu, huruf "I" menjadi "x"), perubahan ini menyebabkan perubahan besar pada ciphertext.
+
+Dalam kedua kasus ini (perubahan pada key atau plaintext), perubahan kecil di input (baik pada plaintext atau key) menyebabkan perubahan yang signifikan pada ciphertext. Ini adalah ciri khas dari efek avalanche, yang memastikan bahwa setiap bit dari ciphertext bergantung pada hampir semua bit dari plaintext dan kunci.
+
+Secara umum, dalam kriptografi yang baik, kita menginginkan agar satu bit perubahan pada input (baik plaintext maupun key) menghasilkan perubahan besar dan tidak terduga dalam ciphertext. Hal ini menambah kerumitan dalam menganalisis hubungan antara ciphertext dan plaintext, yang merupakan salah satu aspek penting dalam meningkatkan keamanan algoritma.
+
+Efek avalanche membantu mencegah analisis kriptanalisis linear dan diferensial karena membuat hubungan antara bit-bit ciphertext dan inputnya (baik plaintext maupun key) sangat kompleks. Setiap bit perubahan dalam plaintext atau key menghasilkan perubahan yang luas di ciphertext, membuatnya sangat sulit untuk memprediksi atau mengekstrak informasi yang berguna dari ciphertext tanpa kunci yang tepat.
+
+Dengan demikian, pengaruh avalanche ini menambah tingkat keamanan yang signifikan pada algoritma seperti AES atau Mini-AES, memastikan bahwa perubahan kecil dalam input akan menghasilkan ciphertext yang benar-benar berbeda dan tidak terduga.

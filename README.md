@@ -22,7 +22,7 @@ Proses ini menghasilkan round keys dari kunci utama yang akan digunakan dalam se
     - AddRoundKey: XOR antara plaintext dan round key untuk memulai enkripsi.
     - SubNibbles: Setiap nibble (4-bit) dalam blok plaintext diganti dengan nilai yang dipetakan menggunakan S-Box 4-bit.
     - ShiftRows: Geser baris-baris dalam blok plaintext sesuai dengan aturan tertentu. Dalam Mini-AES 16-bit, ini dapat dianggap sebagai pergeseran sederhana pada blok 16-bit.
-    - MixColumns: Operasi matriks dilakukan pada kolom-kolom data menggunakan elemen-elemen dalam ruang Galois GF(24). Proses ini mencampur nilai-nilai pada kolom data untuk meningkatkan kekuatan enkripsi.
+    - MixColumns: Operasi matriks dilakukan pada kolom-kolom data menggunakan elemen-elemen dalam ruang Galois GF(2^4). Proses ini mencampur nilai-nilai pada kolom data untuk meningkatkan kekuatan enkripsi.
     - AddRoundKey: XOR lagi antara data yang sudah dimodifikasi dengan round key untuk round ini.
 
 3. Round 3:

@@ -157,12 +157,12 @@ Semua testcase menghasilkan ciphertext yang sesuai dengan langkah enkripsi mini-
 
 ## Analisis Keamanan dan Avalanche Effect
 Efek Avalanche mengacu pada fenomena di mana perubahan kecil (biasanya 1 bit) pada plaintext atau kunci menyebabkan perubahan yang signifikan (hampir setengah) dalam ciphertext. Dalam kriptografi yang baik, efek avalanche ini sangat penting untuk memastikan bahwa ciphertext tidak mengungkapkan pola atau hubungan langsung dengan plaintext. Efek ini meningkatkan keamanan algoritma kriptografi dengan mengurangi kemungkinan untuk menghubungkan ciphertext kembali ke plaintext atau kunci yang digunakan.
-Contohnya:
+Uji sensitivitas terhadap perubahan 1-bit di plaintext dan key:
 - Plaintext: "HI", Key: "AB" → Ciphertext: C855
 - Plaintext: "HI", Key: "XB" → Ciphertext: C3D9
 - Plaintext: "Hx", Key: "AB" → Ciphertext: 2F3C
 
-Dalam kasus ini, perubahan hanya satu bit pada plaintext atau key menghasilkan perubahan yang signifikan pada ciphertext:
+Perubahan hanya satu bit pada plaintext atau key menghasilkan perubahan yang signifikan pada ciphertext:
 - Perubahan pada Key (Key "AB" menjadi "XB"): Ciphertext berubah dari C855 menjadi C3D9. Meskipun perubahan pada key hanya satu bit, perubahan pada ciphertext sangat besar. Hal ini menunjukkan bahwa AES (dan varian seperti Mini-AES) memiliki efek avalanche yang sangat kuat.
 - Perubahan pada Plaintext (Plaintext "HI" menjadi "Hx"): Ciphertext berubah dari C855 menjadi 2F3C. Meskipun hanya ada satu karakter yang berubah dalam plaintext (yaitu, huruf "I" menjadi "x"), perubahan ini menyebabkan perubahan besar pada ciphertext.
 

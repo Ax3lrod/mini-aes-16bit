@@ -47,7 +47,7 @@ if st.button("Run"):
         st.error("Passphrase wajib diisi")
         st.stop()
 
-    key = derive_key16(passphrase)
+    key = text_to_blocks(passphrase)[0]
 
     # BACA INPUT: kalau upload, baca file; kalau text, pakai `input_text`
     if inp_src == "Upload file":

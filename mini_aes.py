@@ -191,7 +191,6 @@ def load_blocks_csv(path: str) -> list[int]:
             out.append(int(row[0], 16))
     return out
 
-# TESTCASES
 def run_tests():
     tests = [
         {"plaintext": "AB", "key": "CD"},
@@ -207,19 +206,18 @@ def run_tests():
         plaintext_block = text_to_blocks(plaintext)
         key_block = text_to_blocks(key)
 
-        print(f"Plaintext '{plaintext}' -> Block: {hex(plaintext_block)}")
-        print(f"Key '{key}' -> Block: {hex(key_block)}")
+        print(f"Plaintext '{plaintext}' -> Block(s): {[hex(b) for b in plaintext_block]}")
+        print(f"Key '{key}' -> Block(s): {[hex(b) for b in key_block]}")
 
-        round_keys = key_expansion(key_block)
+        round_keys = key_expansion(key_block[0])
         print(f"Round Keys: {[hex(k) for k in round_keys]}")
 
-        ciphertext_block = encrypt_block(plaintext_block, round_keys)
+        ciphertext_block = encrypt_block(plaintext_block[0], key_block[0])
         ciphertext_hex = hex(ciphertext_block)
 
         print(f"Ciphertext block: {ciphertext_hex}")
-        ciphertext_text = blocks_to_text(ciphertext_block)
-        print(f"Ciphertext as text: {ciphertext_text.encode('utf-8')}")
         print(f"Expected output format (hex): {ciphertext_hex}")
+
 
 # uncomment untuk mengetes testcases
 if __name__ == "__main__":
